@@ -1,0 +1,35 @@
+{
+  "case_study": {
+    "title": "Renewable Energy Transition in Island Nations",
+    "passage": "Small island developing states face unique energy challenges due to geographic isolation and heavy reliance on imported fossil fuels. In 2021, the island of Ta'u in American Samoa transitioned to nearly 100% renewable energy using a microgrid powered by 5,300 solar panels and 60 Tesla Powerpack battery storage units.\n\nPrior to this project, the island burned over 100,000 gallons of diesel annually, which had to be shipped in periodically. Storms and rough seas regularly caused shipment delays, resulting in rolling blackouts and fuel rationing.\n\nThe solar microgrid system recharges fully with seven hours of sunlight and can power the entire island's hospital, schools, and homes for up to three full days without sun. The project has reduced annual energy costs by 80% while eliminating greenhouse gas emissions from power generation.",
+    "questions": [
+      {
+        "question": "What primary energy source did Ta'u rely on before installing the solar microgrid?",
+        "option_a": "Geothermal energy",
+        "option_b": "Diesel generators",
+        "option_c": "Wind turbines",
+        "option_d": "Coal-fired thermal plants",
+        "correct_option": "B",
+        "explanation": "The passage notes that the island previously burned over 100,000 gallons of diesel annually for electricity."
+      },
+      {
+        "question": "How long can the battery storage units power the island without sunlight?",
+        "option_a": "12 hours",
+        "option_b": "24 hours",
+        "option_c": "Up to 3 full days",
+        "option_d": "One full week",
+        "correct_option": "C",
+        "explanation": "The text explicitly states the system can power the island for up to three full days without sun."
+      },
+      {
+        "question": "By what percentage were annual energy costs reduced after transitioning to the solar microgrid?",
+        "option_a": "50%",
+        "option_b": "65%",
+        "option_c": "80%",
+        "option_d": "95%",
+        "correct_option": "C",
+        "explanation": "The passage highlights that annual energy costs were reduced by 80%."
+      }
+    ]
+  }
+}

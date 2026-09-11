@@ -83,3 +83,70 @@ function require_admin(): void {
         redirect('/dashboard.php');
     }
 }
+
+/**
+ * Group and order questions so case study questions stay contiguous
+ */
+function groupAndOrderQuestions(array $raw_questions, int $limit = 20): array {
+    if (empty($raw_questions)) return [];
+
+    $units = [];
+    $case_groups = [];
+
+    foreach ($raw_questions as $q) {
+        if (!empty($q['case_study_id'])) {
+            $case_groups[$q['case_study_id']][] = $q;
+        } else {
+            $units[] = [$q];
+        }
+    }
+
+    foreach ($case_groups as $cs_questions) {
+        $units[] = $cs_questions;
+    }
+
+    shuffle($units);
+
+    $ordered = [];
+    $leftover_standalones = [];
+
+    foreach ($units as $unit) {
+        $unit_count = count($unit);
+        if (count($ordered) + $unit_count <= $limit) {
+            foreach ($unit as $idx => $q) {
+                if (!empty($q['case_study_id'])) {
+                    $q['case_study_index'] = $idx + 1;
+                    $q['case_study_total'] = $unit_count;
+                }
+                $ordered[] = $q;
+            }
+        } elseif ($unit_count === 1) {
+            $leftover_standalones[] = $unit[0];
+        }
+    }
+
+    // Fill remaining slots with standalone questions
+    while (count($ordered) < $limit && !empty($leftover_standalones)) {
+        $ordered[] = array_shift($leftover_standalones);
+    }
+
+    // If still under limit (e.g. fewer than limit available), add remaining items
+    if (count($ordered) < $limit) {
+        $existing_ids = array_column($ordered, 'id');
+        foreach ($units as $unit) {
+            foreach ($unit as $idx => $q) {
+                if (!in_array($q['id'], $existing_ids)) {
+                    if (!empty($q['case_study_id'])) {
+                        $q['case_study_index'] = $idx + 1;
+                        $q['case_study_total'] = count($unit);
+                    }
+                    $ordered[] = $q;
+                    $existing_ids[] = $q['id'];
+                    if (count($ordered) >= $limit) break 2;
+                }
+            }
+        }
+    }
+
+    return $ordered;
+}

@@ -995,6 +995,135 @@ body.quiz-page .footer {
     }
 }
 
+/* ---------- Case Study Split Layout ---------- */
+.quiz-container.has-case-study {
+    max-width: 1080px;
+}
+
+body.quiz-page:has(.quiz-case-split) .main-content {
+    max-width: 1100px;
+}
+
+.quiz-case-split {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 16px;
+    align-items: stretch;
+    animation: fadeInUp 0.3s ease;
+}
+
+.case-study-pane {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    max-height: 480px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+
+.case-study-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.case-study-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 206, 201, 0.15);
+    color: var(--accent-secondary);
+    font-weight: 700;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(0, 206, 201, 0.3);
+}
+
+.case-study-progress {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--warning);
+    background: var(--warning-bg);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    border: 1px solid rgba(254, 202, 87, 0.3);
+}
+
+.case-study-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    line-height: 1.35;
+    flex-shrink: 0;
+}
+
+.case-study-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) var(--bg-glass);
+}
+
+.case-study-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.case-study-body::-webkit-scrollbar-track {
+    background: var(--bg-glass);
+    border-radius: 3px;
+}
+
+.case-study-body::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+}
+
+.case-study-toggle-btn {
+    display: none;
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg-glass-strong);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--accent-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+@media (max-width: 860px) {
+    .quiz-case-split {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .case-study-pane {
+        max-height: 220px;
+    }
+    .case-study-toggle-btn {
+        display: block;
+    }
+    .case-study-pane.collapsed .case-study-body {
+        display: none;
+    }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;

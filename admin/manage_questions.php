@@ -72,20 +72,22 @@ $chapters = $db->query("
 // Fetch questions
 if ($filter_chapter > 0) {
     $stmt = $db->prepare("
-        SELECT q.*, c.name AS chapter_name, s.name AS subject_name
+        SELECT q.*, c.name AS chapter_name, s.name AS subject_name, cs.title AS case_study_title
         FROM questions q
         JOIN chapters c ON c.id = q.chapter_id
         JOIN subjects s ON s.id = c.subject_id
+        LEFT JOIN case_studies cs ON cs.id = q.case_study_id
         WHERE q.chapter_id = :cid
         ORDER BY q.id DESC
     ");
     $stmt->execute(['cid' => $filter_chapter]);
 } else {
     $stmt = $db->query("
-        SELECT q.*, c.name AS chapter_name, s.name AS subject_name
+        SELECT q.*, c.name AS chapter_name, s.name AS subject_name, cs.title AS case_study_title
         FROM questions q
         JOIN chapters c ON c.id = q.chapter_id
         JOIN subjects s ON s.id = c.subject_id
+        LEFT JOIN case_studies cs ON cs.id = q.case_study_id
         ORDER BY q.id DESC
         LIMIT 50
     ");
@@ -213,9 +215,12 @@ require_once __DIR__ . '/../includes/header.php';
                 <?php foreach ($questions as $q): ?>
                 <tr>
                     <td><?= $q['id'] ?></td>
-                    <td style="color: var(--text-primary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                    <td style="color: var(--text-primary); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                         title="<?= e($q['question_text']) ?>">
-                        <?= e(mb_substr($q['question_text'], 0, 60, 'UTF-8')) ?><?= mb_strlen($q['question_text'], 'UTF-8') > 60 ? '...' : '' ?>
+                        <?php if (!empty($q['case_study_title'])): ?>
+                            <span class="card-badge" style="background: rgba(0, 206, 201, 0.15); color: var(--accent-secondary); font-size: 0.68rem; padding: 2px 6px; margin-right: 4px;" title="Case Study: <?= e($q['case_study_title']) ?>">📖 Case</span>
+                        <?php endif; ?>
+                        <?= e(mb_substr($q['question_text'], 0, 50, 'UTF-8')) ?><?= mb_strlen($q['question_text'], 'UTF-8') > 50 ? '...' : '' ?>
                     </td>
                     <td title="<?= e($q['option_a']) ?>"><?= e(mb_substr($q['option_a'], 0, 15, 'UTF-8')) ?></td>
                     <td title="<?= e($q['option_b']) ?>"><?= e(mb_substr($q['option_b'], 0, 15, 'UTF-8')) ?></td>

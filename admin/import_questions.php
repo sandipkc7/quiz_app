@@ -37,35 +37,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (empty($raw_input)) {
             $error = 'Please paste questions data or upload a JSON/CSV file.';
         } else {
-            $questions_to_insert = [];
+            $standalone_questions = [];
+            $case_study_blocks = [];
 
             // Attempt JSON parse first
             $json_decoded = json_decode($raw_input, true);
             if (is_array($json_decoded)) {
-                // If it's wrapped in a root object like {"questions": [...]}
-                if (isset($json_decoded['questions']) && is_array($json_decoded['questions'])) {
+                // Check if root has "case_study" or "case_studies" or "questions"
+                if (isset($json_decoded['case_study'])) {
+                    $json_decoded = [$json_decoded];
+                } elseif (isset($json_decoded['case_studies']) && is_array($json_decoded['case_studies'])) {
+                    $json_decoded = $json_decoded['case_studies'];
+                } elseif (isset($json_decoded['questions']) && is_array($json_decoded['questions'])) {
                     $json_decoded = $json_decoded['questions'];
                 }
 
                 foreach ($json_decoded as $item) {
-                    $q_text = trim($item['question'] ?? $item['question_text'] ?? '');
-                    $oa = trim($item['option_a'] ?? '');
-                    $ob = trim($item['option_b'] ?? '');
-                    $oc = trim($item['option_c'] ?? '');
-                    $od = trim($item['option_d'] ?? '');
-                    $co = strtoupper(trim($item['correct_option'] ?? ''));
-                    $exp = trim($item['explanation'] ?? '');
+                    // Check if this item is a Case Study block
+                    $cs_data = $item['case_study'] ?? (isset($item['passage']) || isset($item['passage_text']) ? $item : null);
+                    if ($cs_data && is_array($cs_data)) {
+                        $cs_title = trim($cs_data['title'] ?? 'Case Study');
+                        $cs_passage = trim($cs_data['passage'] ?? $cs_data['passage_text'] ?? '');
+                        $raw_sub_qs = $cs_data['questions'] ?? [];
 
-                    if ($q_text && $oa && $ob && $oc && $od && in_array($co, ['A', 'B', 'C', 'D'])) {
-                        $questions_to_insert[] = [
-                            'question_text'  => $q_text,
-                            'option_a'       => $oa,
-                            'option_b'       => $ob,
-                            'option_c'       => $oc,
-                            'option_d'       => $od,
-                            'correct_option' => $co,
-                            'explanation'    => $exp ?: null
-                        ];
+                        $parsed_sub_qs = [];
+                        foreach ($raw_sub_qs as $sub_q) {
+                            $q_text = trim($sub_q['question'] ?? $sub_q['question_text'] ?? '');
+                            $oa = trim($sub_q['option_a'] ?? '');
+                            $ob = trim($sub_q['option_b'] ?? '');
+                            $oc = trim($sub_q['option_c'] ?? '');
+                            $od = trim($sub_q['option_d'] ?? '');
+                            $co = strtoupper(trim($sub_q['correct_option'] ?? ''));
+                            $exp = trim($sub_q['explanation'] ?? '');
+
+                            if ($q_text && $oa && $ob && $oc && $od && in_array($co, ['A', 'B', 'C', 'D'])) {
+                                $parsed_sub_qs[] = [
+                                    'question_text'  => $q_text,
+                                    'option_a'       => $oa,
+                                    'option_b'       => $ob,
+                                    'option_c'       => $oc,
+                                    'option_d'       => $od,
+                                    'correct_option' => $co,
+                                    'explanation'    => $exp ?: null
+                                ];
+                            }
+                        }
+
+                        if (!empty($cs_passage) && !empty($parsed_sub_qs)) {
+                            $case_study_blocks[] = [
+                                'title'     => $cs_title,
+                                'passage'   => $cs_passage,
+                                'questions' => $parsed_sub_qs
+                            ];
+                        }
+                    } else {
+                        // Standard question
+                        $q_text = trim($item['question'] ?? $item['question_text'] ?? '');
+                        $oa = trim($item['option_a'] ?? '');
+                        $ob = trim($item['option_b'] ?? '');
+                        $oc = trim($item['option_c'] ?? '');
+                        $od = trim($item['option_d'] ?? '');
+                        $co = strtoupper(trim($item['correct_option'] ?? ''));
+                        $exp = trim($item['explanation'] ?? '');
+
+                        if ($q_text && $oa && $ob && $oc && $od && in_array($co, ['A', 'B', 'C', 'D'])) {
+                            $standalone_questions[] = [
+                                'question_text'  => $q_text,
+                                'option_a'       => $oa,
+                                'option_b'       => $ob,
+                                'option_c'       => $oc,
+                                'option_d'       => $od,
+                                'correct_option' => $co,
+                                'explanation'    => $exp ?: null
+                            ];
+                        }
                     }
                 }
             } else {
@@ -78,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $row = str_getcsv($line);
                     if ($is_first) {
                         $is_first = false;
-                        // Skip header row if matches
                         if (strtolower($row[0] ?? '') === 'question' || strtolower($row[0] ?? '') === 'question_text') {
                             continue;
                         }
@@ -93,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $exp = isset($row[6]) ? trim($row[6]) : null;
 
                         if ($q_text && $oa && $ob && $oc && $od && in_array($co, ['A', 'B', 'C', 'D'])) {
-                            $questions_to_insert[] = [
+                            $standalone_questions[] = [
                                 'question_text'  => $q_text,
                                 'option_a'       => $oa,
                                 'option_b'       => $ob,
@@ -107,19 +151,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            if (empty($questions_to_insert)) {
-                $error = 'Could not parse any valid questions. Please ensure the format matches the standard schema.';
+            if (empty($standalone_questions) && empty($case_study_blocks)) {
+                $error = 'Could not parse any valid questions or case studies. Please verify JSON/CSV schema.';
             } else {
                 try {
                     $db->beginTransaction();
                     $insert_stmt = $db->prepare("
-                        INSERT INTO questions (chapter_id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation)
-                        VALUES (:chapter_id, :question_text, :option_a, :option_b, :option_c, :option_d, :correct_option, :explanation)
+                        INSERT INTO questions (chapter_id, case_study_id, question_text, option_a, option_b, option_c, option_d, correct_option, explanation)
+                        VALUES (:chapter_id, :case_study_id, :question_text, :option_a, :option_b, :option_c, :option_d, :correct_option, :explanation)
                     ");
 
-                    foreach ($questions_to_insert as $q) {
+                    // Insert Case Studies & their sub-questions
+                    $imported_cases = 0;
+                    $cs_stmt = $db->prepare("
+                        INSERT INTO case_studies (chapter_id, title, passage_text)
+                        VALUES (:chapter_id, :title, :passage_text)
+                    ");
+
+                    foreach ($case_study_blocks as $cs) {
+                        $cs_stmt->execute([
+                            'chapter_id'   => $chapter_id,
+                            'title'        => $cs['title'],
+                            'passage_text' => $cs['passage']
+                        ]);
+                        $new_cs_id = $db->lastInsertId();
+                        $imported_cases++;
+
+                        foreach ($cs['questions'] as $q) {
+                            $insert_stmt->execute([
+                                'chapter_id'     => $chapter_id,
+                                'case_study_id'  => $new_cs_id,
+                                'question_text'  => $q['question_text'],
+                                'option_a'       => $q['option_a'],
+                                'option_b'       => $q['option_b'],
+                                'option_c'       => $q['option_c'],
+                                'option_d'       => $q['option_d'],
+                                'correct_option' => $q['correct_option'],
+                                'explanation'    => $q['explanation'],
+                            ]);
+                            $imported_count++;
+                        }
+                    }
+
+                    // Insert standalone questions
+                    foreach ($standalone_questions as $q) {
                         $insert_stmt->execute([
                             'chapter_id'     => $chapter_id,
+                            'case_study_id'  => null,
                             'question_text'  => $q['question_text'],
                             'option_a'       => $q['option_a'],
                             'option_b'       => $q['option_b'],
@@ -132,7 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $db->commit();
-                    $success = "Successfully imported {$imported_count} questions into the selected chapter!";
+                    $cs_msg = $imported_cases > 0 ? " ({$imported_cases} case studies created)" : "";
+                    $success = "Successfully imported {$imported_count} questions{$cs_msg} into the selected chapter!";
                 } catch (Exception $e) {
                     if ($db->inTransaction()) {
                         $db->rollBack();
@@ -236,12 +315,47 @@ Output strictly valid JSON as an array with no markdown wrappers or intro text, 
     "explanation": "Brief explanation of why A is correct"
   }
 ]</pre>
-            <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-sample').innerText); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy Prompt', 2000);" class="btn btn-secondary" style="margin-top: var(--space-sm); font-size: 0.8rem; padding: 6px 12px;">
-                📋 Copy AI Prompt
+            <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-sample').innerText); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy Standalone Prompt', 2000);" class="btn btn-secondary" style="margin-top: var(--space-sm); font-size: 0.8rem; padding: 6px 12px;">
+                📋 Copy Standalone Prompt
             </button>
         </div>
 
-        <div style="margin-top: var(--space-xl);">
+        <!-- Case Study AI Prompt -->
+        <div style="margin-top: var(--space-lg);">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: var(--space-xs); color: var(--accent-secondary);">
+                📖 Case Study / Reading Passage Prompt
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.82rem; margin-bottom: var(--space-sm);">
+                Use this prompt when you want the AI to write a large scenario/passage followed by several related questions:
+            </p>
+            <div style="position: relative;">
+                <pre id="prompt-case-sample" style="background: var(--bg-secondary); padding: var(--space-md); border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.78rem; overflow-x: auto; color: var(--text-primary); line-height: 1.4;">Write a detailed case study (2-4 paragraphs) about [TOPIC], followed by 4 multiple-choice questions based directly on the case.
+Output strictly valid JSON with no markdown wrappers or intro text, matching this exact schema:
+
+{
+  "case_study": {
+    "title": "Title of the Case Study",
+    "passage": "Full case study text and background paragraphs here...",
+    "questions": [
+      {
+        "question": "First question based on the passage?",
+        "option_a": "Option 1",
+        "option_b": "Option 2",
+        "option_c": "Option 3",
+        "option_d": "Option 4",
+        "correct_option": "A",
+        "explanation": "Why A is correct based on the passage"
+      }
+    ]
+  }
+}</pre>
+                <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-case-sample').innerText); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy Case Study Prompt', 2000);" class="btn btn-secondary" style="margin-top: var(--space-sm); font-size: 0.8rem; padding: 6px 12px;">
+                    📋 Copy Case Study Prompt
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-top: var(--space-lg);">
             <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: var(--space-xs);">CSV Format Alternative</h3>
             <p style="color: var(--text-muted); font-size: 0.82rem; margin-bottom: var(--space-sm);">
                 Columns: <code>question, option_a, option_b, option_c, option_d, correct_option, explanation</code>

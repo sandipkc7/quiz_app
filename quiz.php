@@ -39,39 +39,41 @@ if ($chapter_id > 0) {
     $subject_id = $chapter['subject_id'];
     $quiz_mode = 'chapter';
 
-    // Fetch questions: try chapter first, fall back to subject if < 20
+    // Fetch questions with case study info
     $stmt = $db->prepare("
-        SELECT id, question_text, option_a, option_b, option_c, option_d
-        FROM questions
-        WHERE chapter_id = :chapter_id
-        ORDER BY RAND()
+        SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+               cs.title AS case_study_title, cs.passage_text
+        FROM questions q
+        LEFT JOIN case_studies cs ON cs.id = q.case_study_id
+        WHERE q.chapter_id = :chapter_id
     ");
     $stmt->execute(['chapter_id' => $chapter_id]);
-    $questions = $stmt->fetchAll();
+    $raw_questions = $stmt->fetchAll();
 
     // If fewer than 20, supplement from the same subject (other chapters)
-    if (count($questions) < 20) {
-        $existing_ids = array_column($questions, 'id');
+    if (count($raw_questions) < 20) {
+        $existing_ids = array_column($raw_questions, 'id');
         $placeholders = !empty($existing_ids) ? implode(',', $existing_ids) : '0';
 
         $stmt = $db->prepare("
-            SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
+            SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                   cs.title AS case_study_title, cs.passage_text
             FROM questions q
             JOIN chapters c ON c.id = q.chapter_id
+            LEFT JOIN case_studies cs ON cs.id = q.case_study_id
             WHERE c.subject_id = :subject_id
               AND q.id NOT IN ($placeholders)
             ORDER BY RAND()
             LIMIT :needed
         ");
         $stmt->bindValue(':subject_id', $subject_id, PDO::PARAM_INT);
-        $stmt->bindValue(':needed', 20 - count($questions), PDO::PARAM_INT);
+        $stmt->bindValue(':needed', 20 - count($raw_questions), PDO::PARAM_INT);
         $stmt->execute();
         $extra = $stmt->fetchAll();
-        $questions = array_merge($questions, $extra);
+        $raw_questions = array_merge($raw_questions, $extra);
     }
 
-    // Cap at 20
-    $questions = array_slice($questions, 0, 20);
+    $questions = groupAndOrderQuestions($raw_questions, 20);
 
     $page_title = 'Quiz — ' . $chapter['name'];
     $quiz_label = $chapter['name'];
@@ -94,20 +96,21 @@ if ($chapter_id > 0) {
 
     $quiz_mode = 'subject';
 
-    // Fetch 20 random questions from all chapters in this subject
+    // Fetch questions from all chapters in this subject
     $stmt = $db->prepare("
-        SELECT q.id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d
+        SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+               cs.title AS case_study_title, cs.passage_text
         FROM questions q
         JOIN chapters c ON c.id = q.chapter_id
+        LEFT JOIN case_studies cs ON cs.id = q.case_study_id
         WHERE c.subject_id = :subject_id
-        ORDER BY RAND()
-        LIMIT 20
     ");
     $stmt->execute(['subject_id' => $subject_id]);
-    $questions = $stmt->fetchAll();
+    $raw_questions = $stmt->fetchAll();
 
-    // For subject-wide quiz, pick the first chapter for session storage
-    // (or create a virtual mapping)
+    $questions = groupAndOrderQuestions($raw_questions, 20);
+
+    // Pick the first chapter for session storage
     $first_chapter = $db->prepare("SELECT id FROM chapters WHERE subject_id = :sid ORDER BY sort_order LIMIT 1");
     $first_chapter->execute(['sid' => $subject_id]);
     $chapter_id = $first_chapter->fetchColumn() ?: 0;

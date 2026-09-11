@@ -69,12 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (progressCount) progressCount.textContent = `${index + 1} / ${totalQuestions}`;
         if (progressFill) progressFill.style.width = `${((index + 1) / totalQuestions) * 100}%`;
 
-        // Build question HTML (Compact with integrated bottom row)
-        questionArea.innerHTML = `
-            <div class="question-card">
+        // Update container class for case study styling
+        const quizContainer = document.getElementById('quiz-container');
+        const hasCaseStudy = Boolean(q.passage_text);
+        if (quizContainer) {
+            if (hasCaseStudy) {
+                quizContainer.classList.add('has-case-study');
+            } else {
+                quizContainer.classList.remove('has-case-study');
+            }
+        }
+
+        // Question Card HTML
+        const questionCardHtml = `
+            <div class="question-card ${hasCaseStudy ? 'question-case-card' : ''}">
                 <div class="question-header">
                     <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
-                    <span class="question-kbd-hint">💡 Keys: [A-D] or [1-4] to select &bull; [Enter] next</span>
+                    <span class="question-kbd-hint">💡 Keys: [A-D] or [1-4] &bull; [Enter] next</span>
                 </div>
                 <h2 class="question-text">${escapeHtml(q.question_text)}</h2>
                 <div class="options-grid" id="options-grid">
@@ -95,6 +106,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+
+        if (hasCaseStudy) {
+            const formattedPassage = escapeHtml(q.passage_text)
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+
+            questionArea.innerHTML = `
+                <div class="quiz-case-split">
+                    <div class="case-study-pane" id="case-study-pane">
+                        <button type="button" class="case-study-toggle-btn" id="case-study-toggle">
+                            📖 Toggle Case Study Passage
+                        </button>
+                        <div class="case-study-header">
+                            <span class="case-study-badge">📖 CASE STUDY</span>
+                            ${q.case_study_total ? `<span class="case-study-progress">Question ${q.case_study_index} of ${q.case_study_total}</span>` : ''}
+                        </div>
+                        <h3 class="case-study-title">${escapeHtml(q.case_study_title || 'Case Scenario')}</h3>
+                        <div class="case-study-body">
+                            ${formattedPassage}
+                        </div>
+                    </div>
+                    ${questionCardHtml}
+                </div>
+            `;
+
+            // Mobile toggle handler
+            const toggleBtn = document.getElementById('case-study-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const pane = document.getElementById('case-study-pane');
+                    if (pane) {
+                        pane.classList.toggle('collapsed');
+                    }
+                });
+            }
+        } else {
+            questionArea.innerHTML = questionCardHtml;
+        }
 
         // Attach next button listener
         const nextBtn = document.getElementById('next-btn');
