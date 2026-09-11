@@ -61,8 +61,13 @@ $user = current_user();
                 </a>
                 <?php if (is_admin()): ?>
                 <?php
-                $db_hdr = getDB();
-                $pending_rep_count = $db_hdr->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn() ?: 0;
+                $pending_rep_count = 0;
+                try {
+                    $db_hdr = getDB();
+                    $pending_rep_count = (int) ($db_hdr->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn() ?: 0);
+                } catch (Throwable $e) {
+                    $pending_rep_count = 0;
+                }
                 ?>
                 <a href="<?= BASE_URL ?>/admin/index.php" class="nav-link">
                     <span class="nav-icon">⚙️</span> Admin

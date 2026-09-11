@@ -9,6 +9,13 @@ $current_user = current_user();
 
 $db = getDB();
 
+$pending_reports = 0;
+try {
+    $pending_reports = (int) ($db->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn() ?: 0);
+} catch (Throwable $e) {
+    $pending_reports = 0;
+}
+
 // Stats
 $stats = [
     'users'           => $db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
@@ -16,7 +23,7 @@ $stats = [
     'chapters'        => $db->query("SELECT COUNT(*) FROM chapters")->fetchColumn(),
     'questions'       => $db->query("SELECT COUNT(*) FROM questions")->fetchColumn(),
     'quizzes'         => $db->query("SELECT COUNT(*) FROM quiz_sessions WHERE completed_at IS NOT NULL")->fetchColumn(),
-    'pending_reports' => $db->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn(),
+    'pending_reports' => $pending_reports,
 ];
 
 // Recent quizzes
