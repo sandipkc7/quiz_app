@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Bail if not on quiz page
     if (typeof QUIZ_DATA === 'undefined') return;
 
-    const {sessionId, questions, totalQuestions, baseUrl, csrfToken} = QUIZ_DATA;
+    const {sessionId, questions, totalQuestions, baseUrl, csrfToken, isAdmin, chapterId, subjectId} = QUIZ_DATA;
 
     let currentIndex = 0;
     let score = 0;
@@ -84,7 +84,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const questionCardHtml = `
             <div class="question-card ${hasCaseStudy ? 'question-case-card' : ''}">
                 <div class="question-header">
-                    <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
+                    <div class="question-header-meta">
+                        <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
+                        ${isAdmin ? `
+                            <button type="button" class="btn-admin-manage" id="btn-admin-manage" title="Admin: Edit or Change Question">
+                                ⚙️ Edit / Change Question
+                            </button>
+                        ` : ''}
+                    </div>
                     <span class="question-kbd-hint">💡 Keys: [A-D] or [1-4] &bull; [Enter] next</span>
                 </div>
                 <h2 class="question-text">${escapeHtml(q.question_text)}</h2>
@@ -155,6 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     completeQuiz();
                 }
+            });
+        }
+
+        // Attach admin manage button listener if admin
+        const adminManageBtn = document.getElementById('btn-admin-manage');
+        if (adminManageBtn) {
+            adminManageBtn.addEventListener('click', () => {
+                openAdminModal(q, index);
             });
         }
 
@@ -292,6 +307,187 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Complete error:', error);
             window.location.href = `${baseUrl}/result.php?session_id=${sessionId}`;
         }
+    }
+
+    /**
+     * Open Admin Question Management Modal (Edit or Swap)
+     */
+    function openAdminModal(q, index) {
+        let modal = document.getElementById('admin-quiz-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'admin-quiz-modal';
+            modal.className = 'admin-modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="admin-modal-content">
+                <div class="admin-modal-header">
+                    <div>
+                        <h3 class="admin-modal-title">Admin: Manage Question #${index + 1}</h3>
+                        <p class="admin-modal-subtitle">Question ID: ${q.id} ${q.case_study_id ? ' &bull; Attached to Case Study' : ''}</p>
+                    </div>
+                    <button type="button" class="admin-modal-close" id="admin-modal-close-btn">&times;</button>
+                </div>
+                <div id="admin-modal-alert" style="display:none;" class="admin-modal-alert"></div>
+                <form id="admin-question-form" class="admin-modal-form">
+                    <div class="admin-form-group">
+                        <label class="admin-label" for="admin-q-text">Question Text</label>
+                        <textarea id="admin-q-text" class="admin-input-textarea" rows="3" required>${escapeHtml(q.question_text || '')}</textarea>
+                    </div>
+                    <div class="admin-options-grid">
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="admin-opt-a">Option A</label>
+                            <input type="text" id="admin-opt-a" class="admin-input" value="${escapeHtml(q.option_a || '')}" required>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="admin-opt-b">Option B</label>
+                            <input type="text" id="admin-opt-b" class="admin-input" value="${escapeHtml(q.option_b || '')}" required>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="admin-opt-c">Option C</label>
+                            <input type="text" id="admin-opt-c" class="admin-input" value="${escapeHtml(q.option_c || '')}" required>
+                        </div>
+                        <div class="admin-form-group">
+                            <label class="admin-label" for="admin-opt-d">Option D</label>
+                            <input type="text" id="admin-opt-d" class="admin-input" value="${escapeHtml(q.option_d || '')}" required>
+                        </div>
+                    </div>
+                    <div class="admin-form-row">
+                        <div class="admin-form-group" style="flex: 1;">
+                            <label class="admin-label" for="admin-correct-opt">Correct Option</label>
+                            <select id="admin-correct-opt" class="admin-select" required>
+                                <option value="A" ${q.correct_option === 'A' ? 'selected' : ''}>A</option>
+                                <option value="B" ${q.correct_option === 'B' ? 'selected' : ''}>B</option>
+                                <option value="C" ${q.correct_option === 'C' ? 'selected' : ''}>C</option>
+                                <option value="D" ${q.correct_option === 'D' ? 'selected' : ''}>D</option>
+                            </select>
+                        </div>
+                        <div class="admin-form-group" style="flex: 2;">
+                            <label class="admin-label" for="admin-explanation">Explanation</label>
+                            <textarea id="admin-explanation" class="admin-input-textarea" rows="2" placeholder="Explanation shown after answering">${escapeHtml(q.explanation || '')}</textarea>
+                        </div>
+                    </div>
+                    <div class="admin-modal-footer">
+                        <button type="button" class="btn btn-secondary" id="admin-swap-btn" title="Swap with an unused question from this chapter/subject">
+                            🔄 Swap Question
+                        </button>
+                        <div class="admin-modal-right-actions">
+                            <button type="button" class="btn btn-secondary" id="admin-cancel-btn">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="admin-save-btn">💾 Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+
+        const closeBtn = document.getElementById('admin-modal-close-btn');
+        const cancelBtn = document.getElementById('admin-cancel-btn');
+        const form = document.getElementById('admin-question-form');
+        const swapBtn = document.getElementById('admin-swap-btn');
+        const alertBox = document.getElementById('admin-modal-alert');
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Form submission - Save Changes
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const saveBtn = document.getElementById('admin-save-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const resp = await fetch(`${baseUrl}/api/admin_update_question.php`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question_id: q.id,
+                        question_text: document.getElementById('admin-q-text').value,
+                        option_a: document.getElementById('admin-opt-a').value,
+                        option_b: document.getElementById('admin-opt-b').value,
+                        option_c: document.getElementById('admin-opt-c').value,
+                        option_d: document.getElementById('admin-opt-d').value,
+                        correct_option: document.getElementById('admin-correct-opt').value,
+                        explanation: document.getElementById('admin-explanation').value,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const result = await resp.json();
+                if (result.success && result.question) {
+                    Object.assign(q, result.question);
+                    questions[index] = q;
+                    closeModal();
+                    renderQuestion(index);
+                } else {
+                    alertBox.textContent = result.error || 'Failed to save question.';
+                    alertBox.style.display = 'block';
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Save Changes';
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.textContent = 'Network error occurred.';
+                alertBox.style.display = 'block';
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Changes';
+            }
+        });
+
+        // Swap Question handler
+        swapBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to replace this question with another question from the database?')) {
+                return;
+            }
+
+            swapBtn.disabled = true;
+            swapBtn.textContent = 'Swapping...';
+
+            try {
+                const existingIds = questions.map(item => item.id);
+                const resp = await fetch(`${baseUrl}/api/admin_swap_question.php`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        current_question_id: q.id,
+                        chapter_id: chapterId,
+                        subject_id: subjectId,
+                        existing_ids: existingIds,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const result = await resp.json();
+                if (result.success && result.new_question) {
+                    questions[index] = result.new_question;
+                    closeModal();
+                    renderQuestion(index);
+                } else {
+                    alertBox.textContent = result.error || 'Failed to swap question.';
+                    alertBox.style.display = 'block';
+                    swapBtn.disabled = false;
+                    swapBtn.textContent = '🔄 Swap Question';
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.textContent = 'Network error occurred.';
+                alertBox.style.display = 'block';
+                swapBtn.disabled = false;
+                swapBtn.textContent = '🔄 Swap Question';
+            }
+        });
     }
 
     /**

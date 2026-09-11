@@ -90,61 +90,52 @@ function require_admin(): void {
 function groupAndOrderQuestions(array $raw_questions, int $limit = 20): array {
     if (empty($raw_questions)) return [];
 
-    $units = [];
+    // Group all questions by case_study_id
     $case_groups = [];
-
     foreach ($raw_questions as $q) {
         if (!empty($q['case_study_id'])) {
             $case_groups[$q['case_study_id']][] = $q;
-        } else {
-            $units[] = [$q];
         }
     }
-
-    foreach ($case_groups as $cs_questions) {
-        $units[] = $cs_questions;
-    }
-
-    shuffle($units);
 
     $ordered = [];
-    $leftover_standalones = [];
+    $processed_case_studies = [];
+    $processed_question_ids = [];
 
-    foreach ($units as $unit) {
-        $unit_count = count($unit);
-        if (count($ordered) + $unit_count <= $limit) {
-            foreach ($unit as $idx => $q) {
-                if (!empty($q['case_study_id'])) {
-                    $q['case_study_index'] = $idx + 1;
-                    $q['case_study_total'] = $unit_count;
-                }
-                $ordered[] = $q;
-            }
-        } elseif ($unit_count === 1) {
-            $leftover_standalones[] = $unit[0];
+    // Walk through questions in their original serial order
+    foreach ($raw_questions as $q) {
+        $qid = $q['id'];
+        if (isset($processed_question_ids[$qid])) {
+            continue;
         }
-    }
 
-    // Fill remaining slots with standalone questions
-    while (count($ordered) < $limit && !empty($leftover_standalones)) {
-        $ordered[] = array_shift($leftover_standalones);
-    }
+        // If we have already reached or exceeded the limit, stop
+        if (count($ordered) >= $limit) {
+            break;
+        }
 
-    // If still under limit (e.g. fewer than limit available), add remaining items
-    if (count($ordered) < $limit) {
-        $existing_ids = array_column($ordered, 'id');
-        foreach ($units as $unit) {
-            foreach ($unit as $idx => $q) {
-                if (!in_array($q['id'], $existing_ids)) {
-                    if (!empty($q['case_study_id'])) {
-                        $q['case_study_index'] = $idx + 1;
-                        $q['case_study_total'] = count($unit);
-                    }
-                    $ordered[] = $q;
-                    $existing_ids[] = $q['id'];
-                    if (count($ordered) >= $limit) break 2;
-                }
+        $cs_id = $q['case_study_id'] ?? null;
+        if (!empty($cs_id)) {
+            if (isset($processed_case_studies[$cs_id])) {
+                continue;
             }
+
+            // Output all questions belonging to this case study consecutively
+            $cs_questions = $case_groups[$cs_id] ?? [$q];
+            $cs_total = count($cs_questions);
+
+            foreach ($cs_questions as $idx => $cq) {
+                $cq['case_study_index'] = $idx + 1;
+                $cq['case_study_total'] = $cs_total;
+                $ordered[] = $cq;
+                $processed_question_ids[$cq['id']] = true;
+            }
+
+            $processed_case_studies[$cs_id] = true;
+        } else {
+            // Standalone question
+            $ordered[] = $q;
+            $processed_question_ids[$qid] = true;
         }
     }
 

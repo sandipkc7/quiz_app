@@ -39,31 +39,34 @@ if ($chapter_id > 0) {
     $subject_id = $chapter['subject_id'];
     $quiz_mode = 'chapter';
 
-    // Fetch questions with case study info
+    // Fetch questions serially with case study info
     $stmt = $db->prepare("
-        SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+        SELECT q.id, q.chapter_id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+               q.correct_option, q.explanation,
                cs.title AS case_study_title, cs.passage_text
         FROM questions q
         LEFT JOIN case_studies cs ON cs.id = q.case_study_id
         WHERE q.chapter_id = :chapter_id
+        ORDER BY q.id ASC
     ");
     $stmt->execute(['chapter_id' => $chapter_id]);
     $raw_questions = $stmt->fetchAll();
 
-    // If fewer than 20, supplement from the same subject (other chapters)
+    // If fewer than 20, supplement from the same subject (other chapters) serially
     if (count($raw_questions) < 20) {
         $existing_ids = array_column($raw_questions, 'id');
         $placeholders = !empty($existing_ids) ? implode(',', $existing_ids) : '0';
 
         $stmt = $db->prepare("
-            SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+            SELECT q.id, q.chapter_id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                   q.correct_option, q.explanation,
                    cs.title AS case_study_title, cs.passage_text
             FROM questions q
             JOIN chapters c ON c.id = q.chapter_id
             LEFT JOIN case_studies cs ON cs.id = q.case_study_id
             WHERE c.subject_id = :subject_id
               AND q.id NOT IN ($placeholders)
-            ORDER BY RAND()
+            ORDER BY c.sort_order ASC, c.id ASC, q.id ASC
             LIMIT :needed
         ");
         $stmt->bindValue(':subject_id', $subject_id, PDO::PARAM_INT);
@@ -71,6 +74,31 @@ if ($chapter_id > 0) {
         $stmt->execute();
         $extra = $stmt->fetchAll();
         $raw_questions = array_merge($raw_questions, $extra);
+    }
+
+    // Ensure all sibling questions for any encountered case study are loaded
+    $cs_ids = array_unique(array_filter(array_column($raw_questions, 'case_study_id')));
+    if (!empty($cs_ids)) {
+        $cs_placeholders = implode(',', array_fill(0, count($cs_ids), '?'));
+        $cs_stmt = $db->prepare("
+            SELECT q.id, q.chapter_id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                   q.correct_option, q.explanation,
+                   cs.title AS case_study_title, cs.passage_text
+            FROM questions q
+            LEFT JOIN case_studies cs ON cs.id = q.case_study_id
+            WHERE q.case_study_id IN ($cs_placeholders)
+            ORDER BY q.id ASC
+        ");
+        $cs_stmt->execute(array_values($cs_ids));
+        $all_cs_questions = $cs_stmt->fetchAll();
+
+        $existing_raw_ids = array_flip(array_column($raw_questions, 'id'));
+        foreach ($all_cs_questions as $csq) {
+            if (!isset($existing_raw_ids[$csq['id']])) {
+                $raw_questions[] = $csq;
+                $existing_raw_ids[$csq['id']] = true;
+            }
+        }
     }
 
     $questions = groupAndOrderQuestions($raw_questions, 20);
@@ -96,17 +124,44 @@ if ($chapter_id > 0) {
 
     $quiz_mode = 'subject';
 
-    // Fetch questions from all chapters in this subject
+    // Fetch questions serially from all chapters in this subject
     $stmt = $db->prepare("
-        SELECT q.id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+        SELECT q.id, q.chapter_id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+               q.correct_option, q.explanation,
                cs.title AS case_study_title, cs.passage_text
         FROM questions q
         JOIN chapters c ON c.id = q.chapter_id
         LEFT JOIN case_studies cs ON cs.id = q.case_study_id
         WHERE c.subject_id = :subject_id
+        ORDER BY c.sort_order ASC, c.id ASC, q.id ASC
     ");
     $stmt->execute(['subject_id' => $subject_id]);
     $raw_questions = $stmt->fetchAll();
+
+    // Ensure all sibling questions for any encountered case study are loaded
+    $cs_ids = array_unique(array_filter(array_column($raw_questions, 'case_study_id')));
+    if (!empty($cs_ids)) {
+        $cs_placeholders = implode(',', array_fill(0, count($cs_ids), '?'));
+        $cs_stmt = $db->prepare("
+            SELECT q.id, q.chapter_id, q.case_study_id, q.question_text, q.option_a, q.option_b, q.option_c, q.option_d,
+                   q.correct_option, q.explanation,
+                   cs.title AS case_study_title, cs.passage_text
+            FROM questions q
+            LEFT JOIN case_studies cs ON cs.id = q.case_study_id
+            WHERE q.case_study_id IN ($cs_placeholders)
+            ORDER BY q.id ASC
+        ");
+        $cs_stmt->execute(array_values($cs_ids));
+        $all_cs_questions = $cs_stmt->fetchAll();
+
+        $existing_raw_ids = array_flip(array_column($raw_questions, 'id'));
+        foreach ($all_cs_questions as $csq) {
+            if (!isset($existing_raw_ids[$csq['id']])) {
+                $raw_questions[] = $csq;
+                $existing_raw_ids[$csq['id']] = true;
+            }
+        }
+    }
 
     $questions = groupAndOrderQuestions($raw_questions, 20);
 
@@ -135,6 +190,15 @@ if (empty($questions)) {
 }
 
 $total = count($questions);
+
+// Strip correct_option and explanation for non-admin users so answers cannot be inspected in client JS
+$client_questions = $questions;
+if (!is_admin()) {
+    foreach ($client_questions as &$cq) {
+        unset($cq['correct_option'], $cq['explanation']);
+    }
+    unset($cq);
+}
 
 // --- Create quiz session ---
 $stmt = $db->prepare("
@@ -189,10 +253,13 @@ require_once __DIR__ . '/includes/header.php';
 <script>
     const QUIZ_DATA = {
         sessionId: <?= $session_id ?>,
-        questions: <?= json_encode($questions, JSON_UNESCAPED_UNICODE) ?>,
+        questions: <?= json_encode($client_questions, JSON_UNESCAPED_UNICODE) ?>,
         totalQuestions: <?= $total ?>,
         baseUrl: '<?= BASE_URL ?>',
-        csrfToken: '<?= csrf_token() ?>'
+        csrfToken: '<?= csrf_token() ?>',
+        isAdmin: <?= is_admin() ? 'true' : 'false' ?>,
+        chapterId: <?= $chapter_id ?>,
+        subjectId: <?= $subject_id ?>
     };
 </script>
 
