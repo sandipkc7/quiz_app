@@ -50,10 +50,10 @@ require_once __DIR__ . '/../includes/header.php';
 
 <!-- Stats -->
 <div class="stats-row">
-    <div class="stat-card">
+    <a href="<?= BASE_URL ?>/admin/manage_users.php" class="stat-card" style="text-decoration: none;">
         <span class="stat-value"><?= $stats['users'] ?></span>
-        <span class="stat-label">Users</span>
-    </div>
+        <span class="stat-label">Users & Passwords →</span>
+    </a>
     <div class="stat-card">
         <span class="stat-value"><?= $stats['subjects'] ?></span>
         <span class="stat-label">Subjects</span>
@@ -66,14 +66,19 @@ require_once __DIR__ . '/../includes/header.php';
         <span class="stat-value"><?= $stats['quizzes'] ?></span>
         <span class="stat-label">Quizzes Taken</span>
     </div>
-    <div class="stat-card" style="<?= $stats['pending_reports'] > 0 ? 'border-color: var(--danger); background: rgba(239, 68, 68, 0.05);' : '' ?>">
+    <a href="<?= BASE_URL ?>/admin/manage_reports.php" class="stat-card" style="text-decoration: none; <?= $stats['pending_reports'] > 0 ? 'border-color: var(--danger); background: rgba(239, 68, 68, 0.05);' : '' ?>">
         <span class="stat-value" style="<?= $stats['pending_reports'] > 0 ? 'color: var(--danger);' : '' ?>"><?= $stats['pending_reports'] ?></span>
-        <span class="stat-label">Pending Reports</span>
-    </div>
+        <span class="stat-label">Pending Reports →</span>
+    </a>
 </div>
 
 <!-- Quick Actions -->
 <div class="card-grid mb-xl">
+    <a href="<?= BASE_URL ?>/admin/manage_users.php" class="card">
+        <span class="card-icon">👥</span>
+        <h2 class="card-title">Users & Passwords</h2>
+        <p class="card-description">View registered accounts and reset user passwords directly.</p>
+    </a>
     <a href="<?= BASE_URL ?>/admin/manage_reports.php" class="card" style="<?= $stats['pending_reports'] > 0 ? 'border-color: rgba(239, 68, 68, 0.4);' : '' ?>">
         <span class="card-icon">🚩</span>
         <h2 class="card-title">

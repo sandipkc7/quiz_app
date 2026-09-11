@@ -320,6 +320,24 @@ img {
     color: var(--text-secondary);
 }
 
+.nav-profile-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.nav-profile-link:hover {
+    background: var(--bg-glass);
+}
+
+.nav-profile-link:hover .nav-username {
+    color: var(--text-primary);
+}
+
 .nav-logout {
     color: var(--danger) !important;
     font-size: var(--font-size-xs);
@@ -1835,6 +1853,91 @@ body.quiz-page:has(.quiz-case-split) .main-content {
 
 @keyframes spin {
     to { transform: rotate(360deg); }
+}
+
+/* ---------- User Profile Page ---------- */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: var(--space-xl);
+    align-items: flex-start;
+}
+
+.profile-info-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-2xl) var(--space-xl);
+}
+
+.profile-avatar-large {
+    width: 76px;
+    height: 76px;
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+    color: #ffffff;
+    font-size: 2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-md);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.profile-name {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+}
+
+.profile-email {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+}
+
+.profile-stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 6px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.profile-stat-num {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-stat-lbl {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.profile-security-card {
+    padding: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+    .profile-layout {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ---------- Responsive ---------- */

@@ -77,8 +77,10 @@ $user = current_user();
                 </a>
                 <?php endif; ?>
                 <div class="nav-user">
-                    <span class="nav-avatar"><?= strtoupper(substr($user['username'], 0, 1)) ?></span>
-                    <span class="nav-username"><?= e($user['username']) ?></span>
+                    <a href="<?= BASE_URL ?>/profile.php" class="nav-profile-link" title="My Account & Change Password">
+                        <span class="nav-avatar"><?= strtoupper(substr($user['username'], 0, 1)) ?></span>
+                        <span class="nav-username"><?= e($user['username']) ?></span>
+                    </a>
                     <a href="<?= BASE_URL ?>/auth/logout.php" class="nav-link nav-logout">Logout</a>
                 </div>
             </div>
