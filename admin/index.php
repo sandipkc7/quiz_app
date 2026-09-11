@@ -11,11 +11,12 @@ $db = getDB();
 
 // Stats
 $stats = [
-    'users'     => $db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
-    'subjects'  => $db->query("SELECT COUNT(*) FROM subjects")->fetchColumn(),
-    'chapters'  => $db->query("SELECT COUNT(*) FROM chapters")->fetchColumn(),
-    'questions' => $db->query("SELECT COUNT(*) FROM questions")->fetchColumn(),
-    'quizzes'   => $db->query("SELECT COUNT(*) FROM quiz_sessions WHERE completed_at IS NOT NULL")->fetchColumn(),
+    'users'           => $db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
+    'subjects'        => $db->query("SELECT COUNT(*) FROM subjects")->fetchColumn(),
+    'chapters'        => $db->query("SELECT COUNT(*) FROM chapters")->fetchColumn(),
+    'questions'       => $db->query("SELECT COUNT(*) FROM questions")->fetchColumn(),
+    'quizzes'         => $db->query("SELECT COUNT(*) FROM quiz_sessions WHERE completed_at IS NOT NULL")->fetchColumn(),
+    'pending_reports' => $db->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn(),
 ];
 
 // Recent quizzes
@@ -37,7 +38,7 @@ require_once __DIR__ . '/../includes/header.php';
 
 <div class="page-header">
     <h1 class="page-title">⚙️ Admin Panel</h1>
-    <p class="page-subtitle">Manage subjects, chapters, and questions</p>
+    <p class="page-subtitle">Manage subjects, chapters, questions, and student issue reports</p>
 </div>
 
 <!-- Stats -->
@@ -58,10 +59,24 @@ require_once __DIR__ . '/../includes/header.php';
         <span class="stat-value"><?= $stats['quizzes'] ?></span>
         <span class="stat-label">Quizzes Taken</span>
     </div>
+    <div class="stat-card" style="<?= $stats['pending_reports'] > 0 ? 'border-color: var(--danger); background: rgba(239, 68, 68, 0.05);' : '' ?>">
+        <span class="stat-value" style="<?= $stats['pending_reports'] > 0 ? 'color: var(--danger);' : '' ?>"><?= $stats['pending_reports'] ?></span>
+        <span class="stat-label">Pending Reports</span>
+    </div>
 </div>
 
 <!-- Quick Actions -->
 <div class="card-grid mb-xl">
+    <a href="<?= BASE_URL ?>/admin/manage_reports.php" class="card" style="<?= $stats['pending_reports'] > 0 ? 'border-color: rgba(239, 68, 68, 0.4);' : '' ?>">
+        <span class="card-icon">🚩</span>
+        <h2 class="card-title">
+            Question Reports
+            <?php if ($stats['pending_reports'] > 0): ?>
+                <span class="nav-pending-badge"><?= $stats['pending_reports'] ?> new</span>
+            <?php endif; ?>
+        </h2>
+        <p class="card-description">Review student error reports, wrong answers, and fix questions.</p>
+    </a>
     <a href="<?= BASE_URL ?>/admin/manage_subjects.php" class="card">
         <span class="card-icon">📚</span>
         <h2 class="card-title">Manage Subjects & Chapters</h2>

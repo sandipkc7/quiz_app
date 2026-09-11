@@ -60,8 +60,15 @@ $user = current_user();
                     <span class="nav-icon">📊</span> History
                 </a>
                 <?php if (is_admin()): ?>
+                <?php
+                $db_hdr = getDB();
+                $pending_rep_count = $db_hdr->query("SELECT COUNT(*) FROM question_reports WHERE status = 'pending'")->fetchColumn() ?: 0;
+                ?>
                 <a href="<?= BASE_URL ?>/admin/index.php" class="nav-link">
                     <span class="nav-icon">⚙️</span> Admin
+                    <?php if ($pending_rep_count > 0): ?>
+                        <span class="nav-pending-badge" title="<?= $pending_rep_count ?> pending question reports"><?= $pending_rep_count ?></span>
+                    <?php endif; ?>
                 </a>
                 <?php endif; ?>
                 <div class="nav-user">

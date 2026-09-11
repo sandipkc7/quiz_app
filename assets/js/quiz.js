@@ -92,7 +92,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         ` : ''}
                     </div>
-                    <span class="question-kbd-hint">💡 Keys: [A-D] or [1-4] &bull; [Enter] next</span>
+                    <div class="question-header-actions">
+                        <button type="button" class="btn-report-question" id="btn-report-question" title="Report issue with this question">
+                            🚩 Report
+                        </button>
+                        <span class="question-kbd-hint">💡 Keys: [A-D] or [1-4] &bull; [Enter] next</span>
+                    </div>
                 </div>
                 <h2 class="question-text">${escapeHtml(q.question_text)}</h2>
                 <div class="options-grid" id="options-grid">
@@ -170,6 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminManageBtn) {
             adminManageBtn.addEventListener('click', () => {
                 openAdminModal(q, index);
+            });
+        }
+
+        // Attach report button listener
+        const reportBtn = document.getElementById('btn-report-question');
+        if (reportBtn) {
+            reportBtn.addEventListener('click', () => {
+                openReportModal(q, index);
             });
         }
 
@@ -486,6 +499,147 @@ document.addEventListener('DOMContentLoaded', () => {
                 alertBox.style.display = 'block';
                 swapBtn.disabled = false;
                 swapBtn.textContent = '🔄 Swap Question';
+            }
+        });
+    }
+
+    /**
+     * Open Student Question Report Modal
+     */
+    function openReportModal(q, index) {
+        let modal = document.getElementById('report-quiz-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'report-quiz-modal';
+            modal.className = 'admin-modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        modal.innerHTML = `
+            <div class="admin-modal-content report-modal-content">
+                <div class="admin-modal-header">
+                    <div>
+                        <h3 class="admin-modal-title">🚩 Report Question #${index + 1}</h3>
+                        <p class="admin-modal-subtitle">Help improve quiz quality by reporting inaccuracies or errors.</p>
+                    </div>
+                    <button type="button" class="admin-modal-close" id="report-modal-close-btn">&times;</button>
+                </div>
+                <div id="report-modal-alert" style="display:none;" class="admin-modal-alert"></div>
+                <form id="report-question-form" class="admin-modal-form">
+                    <div class="report-question-preview">
+                        <span class="report-preview-label">Question:</span>
+                        <div class="report-preview-text">${escapeHtml(q.question_text)}</div>
+                    </div>
+                    <div class="report-reasons-group">
+                        <label class="report-reason-card">
+                            <input type="radio" name="report_reason" value="wrong_answer" checked>
+                            <div class="report-reason-info">
+                                <span class="report-reason-title">❌ Wrong answer</span>
+                                <span class="report-reason-desc">The marked correct answer or explanation is factually incorrect</span>
+                            </div>
+                        </label>
+                        <label class="report-reason-card">
+                            <input type="radio" name="report_reason" value="incomplete">
+                            <div class="report-reason-info">
+                                <span class="report-reason-title">⚠️ Incomplete</span>
+                                <span class="report-reason-desc">Missing question text, incomplete options, or truncated passage</span>
+                            </div>
+                        </label>
+                        <label class="report-reason-card">
+                            <input type="radio" name="report_reason" value="irrelevant">
+                            <div class="report-reason-info">
+                                <span class="report-reason-title">🚫 Irrelevant / Out of category</span>
+                                <span class="report-reason-desc">Does not belong in this subject or chapter syllabus</span>
+                            </div>
+                        </label>
+                        <label class="report-reason-card">
+                            <input type="radio" name="report_reason" value="other">
+                            <div class="report-reason-info">
+                                <span class="report-reason-title">💬 Others</span>
+                                <span class="report-reason-desc">Typo, ambiguous phrasing, formatting bug, or other issue</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="admin-form-group">
+                        <label class="admin-label" for="report-details">Additional Details (Optional)</label>
+                        <textarea id="report-details" class="admin-input-textarea" rows="2" placeholder="Describe the error or suggest the correct answer..."></textarea>
+                    </div>
+                    <div class="admin-modal-footer">
+                        <button type="button" class="btn btn-secondary" id="report-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="report-submit-btn">🚩 Submit Report</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+
+        const closeBtn = document.getElementById('report-modal-close-btn');
+        const cancelBtn = document.getElementById('report-cancel-btn');
+        const form = document.getElementById('report-question-form');
+        const alertBox = document.getElementById('report-modal-alert');
+        const submitBtn = document.getElementById('report-submit-btn');
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const reasonInput = form.querySelector('input[name="report_reason"]:checked');
+            const reason = reasonInput ? reasonInput.value : 'other';
+            const details = document.getElementById('report-details').value.trim();
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const resp = await fetch(`${baseUrl}/api/report_question.php`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        question_id: q.id,
+                        reason: reason,
+                        details: details,
+                        csrf_token: csrfToken
+                    })
+                });
+
+                const result = await resp.json();
+                if (result.success) {
+                    alertBox.className = 'admin-modal-alert flash-success';
+                    alertBox.style.background = 'var(--success-bg)';
+                    alertBox.style.borderColor = 'var(--success-border)';
+                    alertBox.style.color = 'var(--success)';
+                    alertBox.textContent = result.message;
+                    alertBox.style.display = 'block';
+                    form.style.display = 'none';
+
+                    setTimeout(() => {
+                        closeModal();
+                    }, 1800);
+                } else {
+                    alertBox.className = 'admin-modal-alert';
+                    alertBox.style.background = 'var(--danger-bg)';
+                    alertBox.style.borderColor = 'var(--danger-border)';
+                    alertBox.style.color = 'var(--danger)';
+                    alertBox.textContent = result.error || 'Failed to submit report.';
+                    alertBox.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🚩 Submit Report';
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.textContent = 'Network error occurred. Please try again.';
+                alertBox.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚩 Submit Report';
             }
         });
     }
