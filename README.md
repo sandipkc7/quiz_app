@@ -45,14 +45,22 @@ A modern, responsive, multi-language quiz application built with **PHP 8+**, **M
    ```
    Adjust database credentials if different from default XAMPP settings (`root` with no password).
 
-3. **Import the Database**:
-   Open phpMyAdmin (`http://localhost/phpmyadmin`) or use MySQL CLI:
+3. **Run Database Migrations (Automated)**:
+   Run the CLI migration runner:
    ```bash
-   mysql -u root --default-character-set=utf8mb4 < db_setup.sql
+   php migrate.php
+   ```
+   To populate starter demo subjects, chapters, and the default admin account:
+   ```bash
+   php migrate.php --seed
+   ```
+   To inspect applied and pending migrations:
+   ```bash
+   php migrate.php --status
    ```
 
 4. **Launch Application**:
-   Navigate to:
+   Navigate to your local or production URL:
    ```
    http://localhost/quiz/
    ```

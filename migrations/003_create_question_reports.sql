@@ -1,4 +1,7 @@
--- Migration: Create question_reports table
+-- ============================================================
+-- Migration 003: Create Question Reports Table
+-- ============================================================
+
 CREATE TABLE IF NOT EXISTS question_reports (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,

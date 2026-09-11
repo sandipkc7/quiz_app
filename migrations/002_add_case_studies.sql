@@ -1,8 +1,6 @@
--- ============================================
--- Migration: Add Case Studies / Passages Table
--- ============================================
-
-USE quiz_db;
+-- ============================================================
+-- Migration 002: Add Case Studies Table and Link to Questions
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS case_studies (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -10,10 +8,11 @@ CREATE TABLE IF NOT EXISTS case_studies (
     title VARCHAR(255) NOT NULL,
     passage_text LONGTEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
+    INDEX idx_case_studies_chapter (chapter_id),
+    CONSTRAINT fk_case_studies_chapter FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add case_study_id column to questions if not exists
+-- Add case_study_id to questions if not exists
 SET @dbname = DATABASE();
 SET @tablename = "questions";
 SET @columnname = "case_study_id";
