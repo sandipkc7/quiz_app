@@ -1,0 +1,20 @@
+[
+  {
+    "question": "What is the capital city of Nepal?",
+    "option_a": "Pokhara",
+    "option_b": "Kathmandu",
+    "option_c": "Lalitpur",
+    "option_d": "Biratnagar",
+    "correct_option": "B",
+    "explanation": "Kathmandu is the capital and largest city of Nepal."
+  },
+  {
+    "question": "Which planet is known as the Red Planet?",
+    "option_a": "Venus",
+    "option_b": "Jupiter",
+    "option_c": "Mars",
+    "option_d": "Saturn",
+    "correct_option": "C",
+    "explanation": "Mars appears red due to iron oxide (rust) on its surface."
+  }
+]
