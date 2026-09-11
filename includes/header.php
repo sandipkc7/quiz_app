@@ -17,9 +17,9 @@ $user = current_user();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/style.css?v=<?= file_exists(__DIR__ . '/../assets/css/style.css') ? filemtime(__DIR__ . '/../assets/css/style.css') : '1.1' ?>">
     <?php if (isset($extra_css)): ?>
-        <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/<?= $extra_css ?>">
+        <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/<?= $extra_css ?>?v=<?= file_exists(__DIR__ . '/../assets/css/' . $extra_css) ? filemtime(__DIR__ . '/../assets/css/' . $extra_css) : '1.1' ?>">
     <?php endif; ?>
     <script>
         // Apply saved theme immediately to prevent flash of wrong theme
