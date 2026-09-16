@@ -64,6 +64,13 @@ function current_user(): ?array {
 }
 
 /**
+ * Get current user ID
+ */
+function current_user_id(): ?int {
+    return isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null;
+}
+
+/**
  * Require authentication — redirect to login if not logged in
  */
 function require_auth(): void {
