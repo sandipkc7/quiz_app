@@ -87,8 +87,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="question-header-meta">
                         <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
                         ${hasCaseStudy ? `
-                            <button type="button" class="btn-case-study-pill" id="btn-case-study-pill" title="View Case Study">
-                                📖 Case Study
+                            <button type="button" class="btn-case-study-pill" id="btn-case-study-pill" title="Read Case Study in Full Screen">
+                                ⛶ Case Study (Full Screen)
                             </button>
                         ` : ''}
                         ${isAdmin ? `
@@ -131,14 +131,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             questionArea.innerHTML = `
                 <div class="quiz-case-split">
-                    <div class="case-study-pane" id="case-study-pane" role="button" tabindex="0" title="Click to view full case study">
+                    <div class="case-study-pane" id="case-study-pane" role="button" tabindex="0" title="Click to view full case study in full screen">
                         <div class="case-study-header">
                             <div class="case-study-header-left">
                                 <span class="case-study-badge">📖 CASE STUDY</span>
                                 ${q.case_study_total ? `<span class="case-study-progress">Question ${q.case_study_index} of ${q.case_study_total}</span>` : ''}
                             </div>
-                            <button type="button" class="case-study-expand-btn" id="case-study-expand-btn" title="Open in Full Screen">
-                                ⛶ Fullscreen
+                            <button type="button" class="case-study-expand-btn" id="case-study-expand-btn" title="Open Case Study in Full Screen">
+                                ⛶ Full Screen
                             </button>
                         </div>
                         <h3 class="case-study-title">${escapeHtml(q.case_study_title || 'Case Scenario')}</h3>
@@ -148,8 +148,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="case-study-mobile-hint" id="case-study-mobile-card">
                             <div class="case-study-mobile-snippet">${escapeHtml((q.passage_text || '').replace(/\s+/g, ' ').slice(0, 110))}...</div>
                             <button type="button" class="case-study-mobile-btn" id="case-study-mobile-btn">
-                                <span>📖 Read Full Case Study</span>
-                                <span class="case-study-mobile-btn-arrow">↗</span>
+                                <span class="case-study-mobile-btn-text">📖 Read Case Study</span>
+                                <span class="case-study-mobile-btn-tag">⛶ Full Screen</span>
                             </button>
                         </div>
                     </div>
