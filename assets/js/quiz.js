@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
                         ${hasCaseStudy ? `
                             <button type="button" class="btn-case-study-pill" id="btn-case-study-pill" title="Read Case Study in Full Screen">
-                                ⛶ Case Study (Full Screen)
+                                ⛶ Fullscreen Case
                             </button>
                         ` : ''}
                         ${isAdmin ? `

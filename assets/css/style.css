@@ -709,12 +709,15 @@ body.quiz-page .footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-sm);
+    gap: var(--space-xs);
     margin-bottom: 8px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .quiz-back-btn {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 500;
     color: var(--text-secondary);
     display: inline-flex;
@@ -727,6 +730,10 @@ body.quiz-page .footer {
     transition: all var(--transition-fast);
     text-decoration: none;
     white-space: nowrap;
+    flex-shrink: 0;
+    max-width: 32%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .quiz-back-btn:hover {
@@ -738,36 +745,51 @@ body.quiz-page .footer {
 .quiz-title-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 1rem;
+    gap: 6px;
+    font-size: 0.92rem;
     font-weight: 700;
     color: var(--text-primary);
     text-align: center;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+    flex: 1;
+    justify-content: center;
 }
 
 .quiz-badge-icon {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.quiz-badge-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .quiz-badge-local {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--accent-secondary);
     font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
 }
 
 .quiz-counter {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--accent-secondary);
     background: var(--bg-glass-strong);
-    padding: 4px 12px;
+    padding: 4px 10px;
     border-radius: var(--radius-full);
     border: 1px solid var(--border-color);
     white-space: nowrap;
     letter-spacing: 0.5px;
+    flex-shrink: 0;
 }
 
 .quiz-progress-track {
@@ -798,19 +820,29 @@ body.quiz-page .footer {
     margin-bottom: 0;
     box-shadow: var(--shadow-md);
     animation: fadeInUp 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .question-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
 }
 
 .question-header-meta {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .btn-admin-manage {
@@ -843,7 +875,9 @@ body.quiz-page .footer {
 .question-header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    margin-left: auto;
+    flex-wrap: wrap;
 }
 
 .btn-report-question {
@@ -1339,10 +1373,13 @@ body.quiz-page:has(.quiz-case-split) .main-content {
 
 .quiz-case-split {
     display: grid;
-    grid-template-columns: 1fr 1.15fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
     gap: 16px;
     align-items: stretch;
     animation: fadeInUp 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .case-study-pane {
@@ -1357,6 +1394,10 @@ body.quiz-page:has(.quiz-case-split) .main-content {
     max-height: 480px;
     box-shadow: var(--shadow-md);
     position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .case-study-header {
@@ -1490,7 +1531,9 @@ body.quiz-page:has(.quiz-case-split) .main-content {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(8, 8, 20, 0.82);
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 8, 20, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     z-index: 10000;
@@ -1499,6 +1542,7 @@ body.quiz-page:has(.quiz-case-split) .main-content {
     justify-content: center;
     padding: var(--space-md);
     animation: fadeIn 0.2s ease;
+    box-sizing: border-box;
 }
 
 .case-study-modal-content {
@@ -1513,6 +1557,7 @@ body.quiz-page:has(.quiz-case-split) .main-content {
     flex-direction: column;
     overflow: hidden;
     animation: fadeInUp 0.25s ease;
+    box-sizing: border-box;
 }
 
 .case-study-modal-header {
@@ -1610,8 +1655,10 @@ body.quiz-page:has(.quiz-case-split) .main-content {
 /* Mobile Responsiveness for Case Study */
 @media (max-width: 860px) {
     .quiz-case-split {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 12px;
+        width: 100%;
+        max-width: 100%;
     }
 
     .case-study-pane {
@@ -1623,6 +1670,9 @@ body.quiz-page:has(.quiz-case-split) .main-content {
         border-radius: var(--radius-lg);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
         transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .case-study-pane:hover {
@@ -1643,6 +1693,9 @@ body.quiz-page:has(.quiz-case-split) .main-content {
         flex-direction: column;
         gap: 10px;
         margin-top: 6px;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .case-study-mobile-snippet {
@@ -1670,6 +1723,7 @@ body.quiz-page:has(.quiz-case-split) .main-content {
         font-weight: 700;
         cursor: pointer;
         transition: all var(--transition-fast);
+        box-sizing: border-box;
     }
 
     .case-study-mobile-btn-text {
@@ -1690,6 +1744,7 @@ body.quiz-page:has(.quiz-case-split) .main-content {
         gap: 3px;
         letter-spacing: 0.3px;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        white-space: nowrap;
     }
 
     .case-study-pane:hover .case-study-mobile-btn {
@@ -1702,13 +1757,15 @@ body.quiz-page:has(.quiz-case-split) .main-content {
     .case-study-modal-overlay {
         padding: 0;
         background: var(--bg-primary);
+        width: 100%;
+        height: 100%;
     }
 
     .case-study-modal-content {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         height: 100dvh;
-        max-width: 100vw;
+        max-width: 100%;
         max-height: 100dvh;
         border-radius: 0;
         border: none;
