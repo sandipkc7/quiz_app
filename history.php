@@ -78,8 +78,8 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- Filter Bar -->
-<div class="card" style="margin-bottom: var(--space-lg); padding: var(--space-md);">
+<!-- Filter Bar & History Actions -->
+<div class="card" style="margin-bottom: var(--space-lg); padding: var(--space-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--space-md);">
     <form method="GET" action="" style="display: flex; gap: var(--space-md); align-items: center; flex-wrap: wrap;">
         <label for="subject_filter" style="font-weight: 600; color: var(--text-secondary);">Filter by Subject:</label>
         <select name="subject_id" id="subject_filter" class="form-control" style="max-width: 250px; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" onchange="this.form.submit()">
@@ -94,6 +94,26 @@ require_once __DIR__ . '/includes/header.php';
             <a href="<?= BASE_URL ?>/history.php" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">Clear Filter</a>
         <?php endif; ?>
     </form>
+
+    <?php if ($stats['total_quizzes'] > 0): ?>
+        <div>
+            <?php if ($filter_subject > 0): ?>
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        style="padding: 6px 14px; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"
+                        onclick="resetHistory('subject', <?= $filter_subject ?>, 'this subject')">
+                    🗑️ Reset Filtered Subject History
+                </button>
+            <?php else: ?>
+                <button type="button" 
+                        class="btn btn-secondary" 
+                        style="padding: 6px 14px; font-size: 0.85rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"
+                        onclick="resetHistory('all', 0, 'all chapters')">
+                    🗑️ Clear All Quiz History
+                </button>
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- History List -->
@@ -122,7 +142,7 @@ require_once __DIR__ . '/includes/header.php';
                 </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: var(--space-xl);">
+            <div style="display: flex; align-items: center; gap: var(--space-lg); flex-wrap: wrap;">
                 <div style="text-align: right;">
                     <div style="font-size: 1.3rem; font-weight: 800; color: <?= $badge_color ?>;">
                         <?= $item['score'] ?> / <?= $item['total_questions'] ?>
@@ -130,13 +150,43 @@ require_once __DIR__ . '/includes/header.php';
                     <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);"><?= $pct ?>% Accuracy</div>
                 </div>
 
-                <a href="<?= BASE_URL ?>/result.php?session_id=<?= $item['id'] ?>" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
-                    Review Answers →
-                </a>
+                <div style="display: flex; gap: var(--space-xs); align-items: center;">
+                    <a href="<?= BASE_URL ?>/result.php?session_id=<?= $item['id'] ?>" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+                        Review Answers →
+                    </a>
+                </div>
             </div>
         </div>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
+
+<!-- Hidden form for resets -->
+<form id="history-reset-form" method="POST" action="<?= BASE_URL ?>/api/reset_history.php" style="display: none;">
+    <?= csrf_field() ?>
+    <input type="hidden" name="scope" id="history-reset-scope" value="all">
+    <input type="hidden" name="chapter_id" id="history-reset-chapter-id" value="">
+    <input type="hidden" name="subject_id" id="history-reset-subject-id" value="">
+    <input type="hidden" name="redirect_to" value="<?= e($_SERVER['REQUEST_URI']) ?>">
+</form>
+
+<script>
+function resetHistory(scope, id, targetName) {
+    if (confirm(`Are you sure you want to reset quiz history for ${targetName}?\n\nThis will permanently delete previous attempts and accuracy records, restarting question progression fresh from Tier 1.`)) {
+        document.getElementById('history-reset-scope').value = scope;
+        if (scope === 'chapter') {
+            document.getElementById('history-reset-chapter-id').value = id;
+            document.getElementById('history-reset-subject-id').value = '';
+        } else if (scope === 'subject') {
+            document.getElementById('history-reset-subject-id').value = id;
+            document.getElementById('history-reset-chapter-id').value = '';
+        } else {
+            document.getElementById('history-reset-chapter-id').value = '';
+            document.getElementById('history-reset-subject-id').value = '';
+        }
+        document.getElementById('history-reset-form').submit();
+    }
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

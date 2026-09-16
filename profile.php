@@ -119,6 +119,19 @@ require_once __DIR__ . '/includes/header.php';
                 <span class="profile-stat-lbl">Accuracy</span>
             </div>
         </div>
+
+        <?php if ($total_quizzes > 0): ?>
+            <div style="margin-top: var(--space-xl); width: 100%;">
+                <form method="POST" action="<?= BASE_URL ?>/api/reset_history.php" onsubmit="return confirm('Reset all your quiz history and accuracy records?\n\nThis will permanently delete all past session records and restart your question progression fresh from Tier 1 (Question 1) across all chapters.');">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="scope" value="all">
+                    <input type="hidden" name="redirect_to" value="/profile.php">
+                    <button type="submit" class="btn btn-secondary" style="width: 100%; border-color: rgba(239, 68, 68, 0.4); color: #ef4444; font-size: 0.85rem; padding: 10px;">
+                        🗑️ Reset All Quiz History & Progress
+                    </button>
+                </form>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Change Password Card -->

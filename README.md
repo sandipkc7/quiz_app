@@ -106,6 +106,12 @@ QuizMaster features an intelligent, user-aware progression engine (`getQuizQuest
 
 > **Case Study Integrity**: When any question in a selection belongs to a Case Study or Passage, all sibling questions for that Case Study are automatically loaded together contiguously.
 
+### ↺ Progress Reset & Clean Slate (Restart from Tier 1)
+Users can reset their progress at any time to clear past accuracy records and restart question rotation from **Tier 1 (Question 1)**:
+- **Per-Chapter Reset**: From [Chapters](file:///c:/xampp/htdocs/quiz/chapters.php) or after completing a quiz in [Results](file:///c:/xampp/htdocs/quiz/result.php) ("*Reset & Restart (Tier 1)*").
+- **Subject-Level Reset**: Reset progress across all chapters in a subject from the [Chapters](file:///c:/xampp/htdocs/quiz/chapters.php) page or [History](file:///c:/xampp/htdocs/quiz/history.php) filter.
+- **Global Account Reset**: Wipe all past attempts, scores, and statistics from [History](file:///c:/xampp/htdocs/quiz/history.php) or [Account Settings](file:///c:/xampp/htdocs/quiz/profile.php).
+
 ---
 
 ## 📖 Case Study & Multiline Question Features

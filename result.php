@@ -95,10 +95,16 @@ require_once __DIR__ . '/includes/header.php';
             <?php endif; ?>
         </p>
 
-        <div class="result-actions">
+        <div class="result-actions" style="display: flex; flex-wrap: wrap; gap: var(--space-md); justify-content: center;">
             <a href="<?= BASE_URL ?>/quiz.php?chapter_id=<?= $session['chapter_id'] ?>" class="btn btn-primary btn-lg">
-                🔄 Retake Quiz
+                🔄 Continue (Next Set)
             </a>
+            <button type="button" 
+                    class="btn btn-secondary btn-lg" 
+                    style="border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"
+                    onclick="resetAndRestartChapter(<?= $session['chapter_id'] ?>, '<?= e(addslashes($session['chapter_name'])) ?>')">
+                ↺ Reset & Restart (Tier 1)
+            </button>
             <a href="<?= BASE_URL ?>/chapters.php?subject_id=<?= $session['subject_id'] ?>" class="btn btn-secondary btn-lg">
                 📚 More Chapters
             </a>
@@ -109,7 +115,21 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
+<!-- Hidden form for Reset & Restart -->
+<form id="reset-restart-form" method="POST" action="<?= BASE_URL ?>/api/reset_history.php" style="display: none;">
+    <?= csrf_field() ?>
+    <input type="hidden" name="scope" value="chapter">
+    <input type="hidden" name="chapter_id" value="<?= $session['chapter_id'] ?>">
+    <input type="hidden" name="redirect_to" value="/quiz.php?chapter_id=<?= $session['chapter_id'] ?>">
+</form>
+
 <script>
+    function resetAndRestartChapter(chapterId, chapterName) {
+        if (confirm(`Reset history for "${chapterName}" and restart from Question 1?\n\nThis will clear your previous attempts and accuracy for this chapter so you can practice Tier 1 questions fresh.`)) {
+            document.getElementById('reset-restart-form').submit();
+        }
+    }
+
     // Animate the result bar on load
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
