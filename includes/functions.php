@@ -14,10 +14,29 @@ function e(string $value): string {
 }
 
 /**
- * Redirect to a URL
+ * Redirect to a URL (handles relative paths, paths with BASE_URL, and absolute URLs)
  */
 function redirect(string $path): void {
-    header("Location: " . BASE_URL . $path);
+    // If path is already a full URL (http://... or https://...)
+    if (preg_match('#^https?://#i', $path)) {
+        header("Location: " . $path);
+        exit;
+    }
+
+    $base = rtrim(BASE_URL, '/');
+
+    // If path already starts with BASE_URL, do not prepend BASE_URL again
+    if ($base !== '' && (str_starts_with($path, $base . '/') || $path === $base)) {
+        header("Location: " . $path);
+        exit;
+    }
+
+    // Ensure leading slash
+    if (!str_starts_with($path, '/')) {
+        $path = '/' . $path;
+    }
+
+    header("Location: " . $base . $path);
     exit;
 }
 
