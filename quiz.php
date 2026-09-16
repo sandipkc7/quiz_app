@@ -134,8 +134,13 @@ require_once __DIR__ . '/includes/header.php';
                 <span class="quiz-badge-local">(<?= e($quiz_label_local) ?>)</span>
             <?php endif; ?>
         </div>
-        <div class="quiz-counter" id="progress-count">
-            1 / <?= $total ?>
+        <div class="quiz-topbar-right" style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn-sound-toggle" id="btn-sound-toggle" title="Sound Effects: ON (Click to Mute)" aria-label="Toggle sound">
+                <span id="sound-icon">🔊</span>
+            </button>
+            <div class="quiz-counter" id="progress-count">
+                1 / <?= $total ?>
+            </div>
         </div>
     </div>
 

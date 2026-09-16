@@ -12,6 +12,7 @@ A modern, responsive, multi-language quiz application built with **PHP 8+**, **M
 - 🎯 **Interactive 20-Question Quiz**:
   - Compact desktop layout with 2x2 grid (zero scrolling required).
   - Instant answer feedback (correct in green, incorrect in red with shake/pulse animations).
+  - 🔊 **Real-time Audio Feedback**: Crisp Web Audio chime for correct answers and soft tone for incorrect answers, with a header sound toggle button (`🔊` / `🔇`) and `localStorage` persistence.
   - Immediate explanation display after each question.
   - Keyboard shortcuts (`1`-`4` or `A`-`D` to select, `Enter`/`Space` to advance).
   - Subject-level practice mode ("Start 20-Question Subject Quiz").

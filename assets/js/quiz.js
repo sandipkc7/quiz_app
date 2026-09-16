@@ -17,6 +17,113 @@ document.addEventListener('DOMContentLoaded', () => {
     const questionArea = document.getElementById('question-area');
     const progressFill = document.getElementById('progress-fill');
     const progressCount = document.getElementById('progress-count');
+    const soundToggleBtn = document.getElementById('btn-sound-toggle');
+
+    // Web Audio API Sound Effects Engine
+    let audioCtx = null;
+    let soundEnabled = localStorage.getItem('quiz_sound_enabled') !== 'false'; // default to enabled
+
+    function getAudioContext() {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function updateSoundToggleUI() {
+        const btn = document.getElementById('btn-sound-toggle');
+        const icon = document.getElementById('sound-icon');
+        if (btn && icon) {
+            if (soundEnabled) {
+                icon.textContent = '🔊';
+                btn.classList.remove('muted');
+                btn.title = 'Sound Effects: ON (Click to Mute)';
+            } else {
+                icon.textContent = '🔇';
+                btn.classList.add('muted');
+                btn.title = 'Sound Effects: OFF (Click to Unmute)';
+            }
+        }
+    }
+
+    if (soundToggleBtn) {
+        updateSoundToggleUI();
+        soundToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('quiz_sound_enabled', soundEnabled ? 'true' : 'false');
+            updateSoundToggleUI();
+            getAudioContext();
+        });
+    }
+
+    function playCorrectSound() {
+        if (!soundEnabled) return;
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            // Tone 1: D5 -> E5
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(587.33, now);
+            osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.08);
+            gain1.gain.setValueAtTime(0.18, now);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start(now);
+            osc1.stop(now + 0.22);
+
+            // Tone 2: A5 -> C6 chime
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(880, now + 0.08);
+            osc2.frequency.exponentialRampToValueAtTime(1046.5, now + 0.16);
+            gain2.gain.setValueAtTime(0.22, now + 0.08);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start(now + 0.08);
+            osc2.stop(now + 0.38);
+        } catch (e) {
+            console.warn('Audio play error:', e);
+        }
+    }
+
+    function playIncorrectSound() {
+        if (!soundEnabled) return;
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            // Subtle descending low chord
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(260, now);
+            osc.frequency.exponentialRampToValueAtTime(170, now + 0.22);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } catch (e) {
+            console.warn('Audio play error:', e);
+        }
+    }
 
     // Initialize first question
     renderQuestion(currentIndex);
@@ -238,6 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (answered) return;
         answered = true;
 
+        // Prime audio context synchronously inside user gesture handler
+        getAudioContext();
+
         // Disable all buttons immediately
         document.querySelectorAll('.option-btn').forEach(btn => {
             btn.classList.add('disabled');
@@ -278,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.correct) {
                     score++;
+                    playCorrectSound();
                 } else if (selectedBtn) {
                     // Mark wrong answer
                     selectedBtn.classList.add('wrong');
@@ -285,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     wrongResult.className = 'option-result';
                     wrongResult.textContent = '✗';
                     selectedBtn.appendChild(wrongResult);
+                    playIncorrectSound();
                 }
 
                 // Show explanation
