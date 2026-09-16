@@ -937,7 +937,9 @@ body.quiz-page .footer {
     font-weight: 500;
     color: var(--text-primary);
     margin: 4px 0 0;
-    line-height: 1.4;
+    line-height: 1.45;
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 .report-reasons-group {
@@ -1192,9 +1194,11 @@ body.quiz-page .footer {
 .question-text {
     font-size: 1.15rem;
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.55;
     color: var(--text-primary);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 /* Answer Options — 2x2 Grid on Desktop */
@@ -1296,6 +1300,7 @@ body.quiz-page .footer {
 .option-text {
     flex: 1;
     word-break: break-word;
+    white-space: pre-line;
 }
 
 .option-result {
@@ -1321,9 +1326,11 @@ body.quiz-page .footer {
     border-radius: var(--radius-md);
     font-size: 0.82rem;
     color: var(--info);
-    line-height: 1.4;
+    line-height: 1.5;
     animation: fadeIn 0.3s ease;
     flex: 1;
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 .explanation strong {

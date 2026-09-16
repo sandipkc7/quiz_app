@@ -240,25 +240,25 @@ require_once __DIR__ . '/../includes/header.php';
                     <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
                         QUESTION #<?= $r['question_id'] ?>:
                     </div>
-                    <div style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px;">
+                    <div style="font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 10px; white-space: pre-line; line-height: 1.5;">
                         <?= e($r['question_text']) ?>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; font-size: 0.85rem;">
-                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'A' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'A' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary);">
+                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'A' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'A' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary); white-space: pre-line;">
                             <strong>A:</strong> <?= e($r['option_a']) ?> <?= $r['correct_option'] === 'A' ? '✓' : '' ?>
                         </div>
-                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'B' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'B' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary);">
+                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'B' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'B' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary); white-space: pre-line;">
                             <strong>B:</strong> <?= e($r['option_b']) ?> <?= $r['correct_option'] === 'B' ? '✓' : '' ?>
                         </div>
-                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'C' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'C' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary);">
+                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'C' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'C' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary); white-space: pre-line;">
                             <strong>C:</strong> <?= e($r['option_c']) ?> <?= $r['correct_option'] === 'C' ? '✓' : '' ?>
                         </div>
-                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'D' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'D' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary);">
+                        <div style="padding: 6px 10px; border-radius: var(--radius-sm); background: <?= $r['correct_option'] === 'D' ? 'var(--success-bg)' : 'var(--bg-card)' ?>; border: 1px solid <?= $r['correct_option'] === 'D' ? 'var(--success-border)' : 'var(--border-color)' ?>; color: var(--text-primary); white-space: pre-line;">
                             <strong>D:</strong> <?= e($r['option_d']) ?> <?= $r['correct_option'] === 'D' ? '✓' : '' ?>
                         </div>
                     </div>
                     <?php if (!empty($r['explanation'])): ?>
-                        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--info);">
+                        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--info); white-space: pre-line; line-height: 1.45;">
                             <strong>Explanation:</strong> <?= e($r['explanation']) ?>
                         </div>
                     <?php endif; ?>
