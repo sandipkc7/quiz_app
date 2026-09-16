@@ -92,6 +92,27 @@ To generate questions using AI (ChatGPT, Claude, Gemini) for bulk import into th
 ]
 ```
 
+## 🧠 Smart Question Rotation & Chapter Progression
+
+QuizMaster features an intelligent, user-aware progression engine (`getQuizQuestionsForUser()`) that prevents repetitive questions and maximizes learning efficiency across multiple chapter attempts.
+
+### 3-Tier Progression Hierarchy (Automated):
+
+| Tier | Priority Category | Description & Behavior |
+| :--- | :--- | :--- |
+| **Tier 1** | 🆕 **Unattempted / New Questions** | Automatically queries fresh, unattempted questions in sequence. For example, in a chapter with 80 questions: <br>• **Attempt 1**: Questions 1–20 <br>• **Attempt 2**: Questions 21–40 <br>• **Attempt 3**: Questions 41–60 <br>• **Attempt 4**: Questions 61–80 |
+| **Tier 2** | 🎯 **Incorrect Questions (Weak Areas)** | Once all chapter questions have been attempted, the engine automatically prioritizes questions previously answered incorrectly to reinforce weak areas. |
+| **Tier 3** | 🔄 **Least-Recently Practiced** | Cycles through older questions based on the time elapsed since they were last answered, enabling continuous circular practice with zero dead ends. |
+
+> **Case Study Integrity**: When any question in a selection belongs to a Case Study or Passage, all sibling questions for that Case Study are automatically loaded together contiguously.
+
+---
+
+## 📖 Case Study & Multiline Question Features
+
+- **Mobile Full-Screen Modal**: On mobile screens ($\le 860\text{px}$), Case Studies can be opened in a dedicated full-screen modal with large typography, safe scrolling, and a sticky "Back to Question" button.
+- **Multiline & Formatted Questions**: Supports complex question formats (e.g. matching pairs `i.`, `ii.`, `iii.`, legal scenario facts, and tables) with line breaks preserved cleanly without collapsing.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -99,3 +120,4 @@ To generate questions using AI (ChatGPT, Claude, Gemini) for bulk import into th
 - **Backend**: PHP 8 (Pure PHP, zero heavy framework dependencies)
 - **Database**: MySQL with PDO (`utf8mb4_unicode_ci`)
 - **Frontend**: Vanilla HTML5, Vanilla CSS3 (Custom Glassmorphism design system), Vanilla JavaScript (AJAX / Fetch API)
+
