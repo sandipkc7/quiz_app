@@ -86,6 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="question-header">
                     <div class="question-header-meta">
                         <span class="question-number">Question ${index + 1} of ${totalQuestions}</span>
+                        ${hasCaseStudy ? `
+                            <button type="button" class="btn-case-study-pill" id="btn-case-study-pill" title="View Case Study">
+                                📖 Case Study
+                            </button>
+                        ` : ''}
                         ${isAdmin ? `
                             <button type="button" class="btn-admin-manage" id="btn-admin-manage" title="Admin: Edit or Change Question">
                                 ⚙️ Edit / Change Question
@@ -126,35 +131,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
             questionArea.innerHTML = `
                 <div class="quiz-case-split">
-                    <div class="case-study-pane" id="case-study-pane">
-                        <button type="button" class="case-study-toggle-btn" id="case-study-toggle">
-                            📖 Toggle Case Study Passage
-                        </button>
+                    <div class="case-study-pane" id="case-study-pane" role="button" tabindex="0" title="Click to view full case study">
                         <div class="case-study-header">
-                            <span class="case-study-badge">📖 CASE STUDY</span>
-                            ${q.case_study_total ? `<span class="case-study-progress">Question ${q.case_study_index} of ${q.case_study_total}</span>` : ''}
+                            <div class="case-study-header-left">
+                                <span class="case-study-badge">📖 CASE STUDY</span>
+                                ${q.case_study_total ? `<span class="case-study-progress">Question ${q.case_study_index} of ${q.case_study_total}</span>` : ''}
+                            </div>
+                            <button type="button" class="case-study-expand-btn" id="case-study-expand-btn" title="Open in Full Screen">
+                                ⛶ Fullscreen
+                            </button>
                         </div>
                         <h3 class="case-study-title">${escapeHtml(q.case_study_title || 'Case Scenario')}</h3>
                         <div class="case-study-body">
                             ${formattedPassage}
+                        </div>
+                        <div class="case-study-mobile-hint" id="case-study-mobile-card">
+                            <div class="case-study-mobile-snippet">${escapeHtml((q.passage_text || '').replace(/\s+/g, ' ').slice(0, 110))}...</div>
+                            <button type="button" class="case-study-mobile-btn" id="case-study-mobile-btn">
+                                <span>📖 Read Full Case Study</span>
+                                <span class="case-study-mobile-btn-arrow">↗</span>
+                            </button>
                         </div>
                     </div>
                     ${questionCardHtml}
                 </div>
             `;
 
-            // Mobile toggle handler
-            const toggleBtn = document.getElementById('case-study-toggle');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    const pane = document.getElementById('case-study-pane');
-                    if (pane) {
-                        pane.classList.toggle('collapsed');
+            // Attach case study modal listeners
+            const openCaseModal = () => openCaseStudyModal(q, index);
+            const expandBtn = document.getElementById('case-study-expand-btn');
+            const mobileBtn = document.getElementById('case-study-mobile-btn');
+            const mobileCard = document.getElementById('case-study-mobile-card');
+            const casePane = document.getElementById('case-study-pane');
+
+            if (expandBtn) expandBtn.addEventListener('click', (e) => { e.stopPropagation(); openCaseModal(); });
+            if (mobileBtn) mobileBtn.addEventListener('click', (e) => { e.stopPropagation(); openCaseModal(); });
+            if (mobileCard) mobileCard.addEventListener('click', (e) => { e.stopPropagation(); openCaseModal(); });
+            if (casePane) {
+                casePane.addEventListener('click', () => {
+                    if (window.innerWidth <= 860) {
+                        openCaseModal();
+                    }
+                });
+                casePane.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openCaseModal();
                     }
                 });
             }
         } else {
             questionArea.innerHTML = questionCardHtml;
+        }
+
+        // Attach Case Study pill button in question header if present
+        const casePillBtn = document.getElementById('btn-case-study-pill');
+        if (casePillBtn && hasCaseStudy) {
+            casePillBtn.addEventListener('click', () => {
+                openCaseStudyModal(q, index);
+            });
         }
 
         // Attach next button listener
@@ -642,6 +677,79 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = '🚩 Submit Report';
             }
         });
+    }
+
+    /**
+     * Open Full Screen Case Study Modal (especially for mobile devices)
+     */
+    function openCaseStudyModal(q, index) {
+        let modal = document.getElementById('case-study-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'case-study-modal';
+            modal.className = 'case-study-modal-overlay';
+            document.body.appendChild(modal);
+        }
+
+        const formattedPassage = escapeHtml(q.passage_text || '')
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>');
+
+        modal.innerHTML = `
+            <div class="case-study-modal-content">
+                <div class="case-study-modal-header">
+                    <div class="case-study-modal-header-info">
+                        <div class="case-study-modal-badge-row">
+                            <span class="case-study-badge">📖 CASE STUDY</span>
+                            ${q.case_study_total ? `<span class="case-study-progress">Question ${q.case_study_index} of ${q.case_study_total}</span>` : ''}
+                        </div>
+                        <h2 class="case-study-modal-title">${escapeHtml(q.case_study_title || 'Case Scenario')}</h2>
+                    </div>
+                    <button type="button" class="case-study-modal-close" id="case-study-modal-close-btn" title="Close Case Study" aria-label="Close Case Study">&times;</button>
+                </div>
+                <div class="case-study-modal-body">
+                    <div class="case-study-modal-passage">
+                        ${formattedPassage}
+                    </div>
+                </div>
+                <div class="case-study-modal-footer">
+                    <button type="button" class="btn btn-primary case-study-modal-done-btn" id="case-study-modal-done-btn">
+                        ← Back to Question
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.style.display = 'flex';
+        document.body.classList.add('case-study-modal-open');
+
+        const closeBtn = document.getElementById('case-study-modal-close-btn');
+        const doneBtn = document.getElementById('case-study-modal-done-btn');
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.classList.remove('case-study-modal-open');
+        }
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeModal();
+        });
+        doneBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeModal();
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                closeModal();
+                window.removeEventListener('keydown', handleKeyDown);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
     }
 
     /**
