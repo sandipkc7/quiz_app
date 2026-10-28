@@ -67,9 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
 
                     // Build absolute reset URL
-                    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $reset_url = $scheme . '://' . $host . rtrim(BASE_URL, '/') . '/auth/reset_password.php?token=' . urlencode($plain_token);
+                    $reset_url = app_url('/auth/reset_password.php?token=' . urlencode($plain_token));
 
                     // Dispatch email via SMTP
                     $mailResult = send_password_reset_email($user['email'], $user['username'], $reset_url);

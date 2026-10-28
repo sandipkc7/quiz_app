@@ -41,6 +41,55 @@ function redirect(string $path): void {
 }
 
 /**
+ * Build a robust, absolute URL for external links (e.g. emails)
+ * Handles all configurations:
+ *   - APP_URL if specified in .env
+ *   - BASE_URL if specified as a full URL (e.g. "https://quiz.sandipkc.com.np")
+ *   - BASE_URL as a subpath (e.g. "/quiz" or "")
+ *   - Reverse proxies, Cloudflare, and SSL detection (HTTP_X_FORWARDED_PROTO)
+ */
+function app_url(string $path = ''): string {
+    // Ensure path has leading slash if not empty and not an absolute URL
+    if ($path !== '' && !str_starts_with($path, '/') && !preg_match('#^https?://#i', $path)) {
+        $path = '/' . $path;
+    }
+
+    // 1. Explicit APP_URL from .env or constant
+    $appUrl = trim(function_exists('env') ? env('APP_URL', '') : '');
+    if (!empty($appUrl)) {
+        return rtrim($appUrl, '/') . $path;
+    }
+
+    // 2. Check if BASE_URL is already an absolute URL with scheme
+    $base = trim(defined('BASE_URL') ? BASE_URL : '');
+    if (preg_match('#^https?://#i', $base)) {
+        return rtrim($base, '/') . $path;
+    }
+
+    // 3. Auto-detect scheme (taking reverse proxies, Cloudflare, load balancers into account)
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https')
+        || (!empty($_SERVER['HTTP_X_FORWARDED_SSL']) && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on')
+        || (!empty($_SERVER['HTTP_CF_VISITOR']) && str_contains($_SERVER['HTTP_CF_VISITOR'], '"https"'))
+        || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+
+    $scheme = $isHttps ? 'https://' : 'http://';
+
+    // 4. Auto-detect host (taking proxy forwarding into account)
+    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? ($_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost'));
+    if (str_contains($host, ',')) {
+        $host = trim(explode(',', $host)[0]);
+    }
+
+    $subpath = '/' . trim($base, '/');
+    if ($subpath === '/') {
+        $subpath = '';
+    }
+
+    return $scheme . $host . $subpath . $path;
+}
+
+/**
  * Set a flash message
  */
 function flash(string $type, string $message): void {
