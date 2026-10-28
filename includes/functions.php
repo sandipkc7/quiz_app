@@ -54,8 +54,8 @@ function app_url(string $path = ''): string {
         $path = '/' . $path;
     }
 
-    // 1. Explicit APP_URL from .env or constant
-    $appUrl = trim(function_exists('env') ? env('APP_URL', '') : '');
+    // 1. Explicit APP_URL from constant or .env
+    $appUrl = trim(defined('APP_URL') && APP_URL !== '' ? APP_URL : (function_exists('env') ? env('APP_URL', '') : ''));
     if (!empty($appUrl)) {
         return rtrim($appUrl, '/') . $path;
     }

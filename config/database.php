@@ -52,6 +52,7 @@ define('DB_PASS',    env('DB_PASS', ''));
 
 define('APP_NAME',   env('APP_NAME', 'QuizMaster'));
 define('BASE_URL',   env('BASE_URL', '/quiz'));
+define('APP_URL',    rtrim(env('APP_URL', ''), '/'));
 define('APP_ENV',    env('APP_ENV', 'development'));
 
 // ---- SMTP Mail Constants ----
