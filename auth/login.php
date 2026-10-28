@@ -90,6 +90,10 @@ require_once __DIR__ . '/../includes/header.php';
                 <label class="auth-label" for="password-input">Password</label>
             </div>
 
+            <div class="auth-meta-row">
+                <a href="<?= BASE_URL ?>/auth/forgot_password.php" class="auth-forgot-link" id="forgot-password-link">Forgot password?</a>
+            </div>
+
             <button type="submit" class="auth-btn" id="login-btn">Sign In</button>
         </form>
 

@@ -7,6 +7,7 @@ A modern, responsive, multi-language quiz application built with **PHP 8+**, **M
 ## ✨ Features
 
 - 🔐 **User Authentication**: Secure register/login with bcrypt password hashing and CSRF protection.
+- 🔑 **Password Reset System**: Fully automated forgot password flow with cryptographic token verification, anti-flood rate limiting, and RFC-compliant SMTP email dispatching.
 - 🎨 **Dark / Light Theme Switcher**: Modern glassmorphism UI with smooth toggle and `localStorage` persistence.
 - 📚 **Subjects & Chapters**: Browse subjects (Science, Math, General Knowledge, Computer Science) and select chapters with question counts.
 - 🎯 **Interactive 20-Question Quiz**:
@@ -44,7 +45,8 @@ A modern, responsive, multi-language quiz application built with **PHP 8+**, **M
    ```bash
    cp .env.example .env
    ```
-   Adjust database credentials if different from default XAMPP settings (`root` with no password).
+   - Adjust database credentials if different from default XAMPP settings (`root` with no password).
+   - Configure your **SMTP Mail** credentials (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_ENCRYPTION`, `SMTP_FROM_EMAIL`). Works with Gmail (App Password), Mailtrap, SendGrid, Brevo, Outlook, etc.
 
 3. **Run Database Migrations (Automated)**:
    Run the CLI migration runner:

@@ -54,6 +54,15 @@ define('APP_NAME',   env('APP_NAME', 'QuizMaster'));
 define('BASE_URL',   env('BASE_URL', '/quiz'));
 define('APP_ENV',    env('APP_ENV', 'development'));
 
+// ---- SMTP Mail Constants ----
+define('SMTP_HOST',       env('SMTP_HOST', env('imap_host', 'smtp.gmail.com')));
+define('SMTP_PORT',       (int) env('SMTP_PORT', env('imap_port', '587')));
+define('SMTP_USER',       env('SMTP_USER', env('imap_user', '')));
+define('SMTP_PASS',       env('SMTP_PASS', env('imap_password', '')));
+define('SMTP_ENCRYPTION', strtolower(env('SMTP_ENCRYPTION', 'tls')));
+define('SMTP_FROM_EMAIL', env('SMTP_FROM_EMAIL', env('SMTP_USER', env('imap_user', 'noreply@quizmaster.com'))));
+define('SMTP_FROM_NAME',  env('SMTP_FROM_NAME', env('APP_NAME', 'QuizMaster') . ' Support'));
+
 /**
  * Get PDO database connection
  * @return PDO

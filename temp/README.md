@@ -1,14 +1,14 @@
 # Production Migration Temporary Folder
 
-This folder contains the database migration script required for production optimization.
+This folder contains the database migration script required for the **Password Reset & SMTP Email** system.
 
 ### File Included:
-- **`production_migration.sql`**: Adds composite performance indexes on `quiz_sessions`, `quiz_answers`, and `questions` for the Question Progression engine.
+- **`production_migration.sql`**: Creates the `password_resets` table with foreign key constraints, indexes, utf8mb4 charset, and updates the `schema_migrations` tracking table.
 
 ### How to Apply on Production Server:
 You can choose any of the following methods:
 
-**Method 1 (Command Line Migration Runner - Recommended):**
+**Method 1 (Command Line Migration Runner — Recommended):**
 ```bash
 php migrate.php
 ```
@@ -18,7 +18,7 @@ php migrate.php
 mysql -u your_db_user -p your_db_name < temp/production_migration.sql
 ```
 
-**Method 3 (phpMyAdmin / Adminer):**
+**Method 3 (phpMyAdmin / Adminer / cPanel):**
 - Open phpMyAdmin, select your quiz database, go to the **SQL** tab, copy & paste the contents of `temp/production_migration.sql`, and click **Go**.
 
 ---
